@@ -3,11 +3,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-#define SIZE 512
 #define SECTOR_SIZE 512
-//#define FILE_NAME "dump"
-//#define FILE_NAME "fat12_4_size_4097"
-#define FILE_NAME "/dev/sdb1"
 
 int print_array(const unsigned char ptr[], int size){
 	printf("\n");
@@ -124,23 +120,28 @@ int main(int argc, char *argv[])
 {
 	int ret = 0;
 
-	if(argc < 2){
-		printf("argc=%d < 2\n", argc);
+	if(argc < 3){
+		printf("argc=%d < 3\n", argc);
 		return -1;
 	}
 
-	printf ("hello\n");
-
-	unsigned char file[999999];
-	int size = 0;
-	
 	int finput = open(argv[1], O_RDONLY);
 	if(finput < 0){
 		printf("argv[1] not found\n");
 		ret = -1;
 		goto __func_end;
 	}
-	printf("%d\n", finput);
+
+	int fd = open(argv[2], O_RDWR);
+	if(fd < 0){
+		printf("argv[2] not found\n");
+		ret = -1;
+		goto __func_end;
+	}
+
+
+	unsigned char file[999999];
+	int size = 0;
 	int gotten;
 	while( (gotten = read(finput, file+size, 512)) >0 ){
 		size += gotten;
@@ -149,7 +150,6 @@ int main(int argc, char *argv[])
 		ret = -1;
 		goto __func_end;
 	}
-	
 
 	printf("argv[1] size = %d", size);
 
@@ -157,16 +157,6 @@ int main(int argc, char *argv[])
 	memset(buf, 0x00, SECTOR_SIZE);
 	get_fat(buf, size);
 	print_sector(buf);
-
-
-	int fd = open(FILE_NAME, O_RDWR);
-	if(fd < 0){
-		ret = -1;
-		goto __func_end;
-	}
-
-	printf("%d\n", fd);
-
 
 	//write fat 1
 	ret = write_sector(fd, buf, 1);
