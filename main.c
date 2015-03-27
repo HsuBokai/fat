@@ -116,31 +116,45 @@ int get_fat(unsigned char fat[], int size){
 	return 0;
 }
 
+
 int main(int argc, char *argv[])
 {
 	int ret = 0;
 
 	if(argc < 3){
-		printf("argc=%d < 3\n", argc);
+		printf("Usage: %s <input> <output>\n", argv[0]);
 		return -1;
 	}
 
 	int finput = open(argv[1], O_RDONLY);
 	if(finput < 0){
-		printf("argv[1] not found\n");
+		printf("<input> %s not found\n", argv[1]);
 		ret = -1;
 		goto __func_end;
 	}
 
-	int fd = open(argv[2], O_RDWR);
+	int ftemplate = open("template", O_RDONLY);
+	if(ftemplate < 0){
+		printf("template not found\n");
+		ret = -1;
+		goto __func_end;
+	}
+
+	int fd = open(argv[2], O_WRONLY | O_CREAT | O_EXCL, 0644);
 	if(fd < 0){
-		printf("argv[2] not found\n");
+		printf("create %s error!\n", argv[2]);
 		ret = -1;
 		goto __func_end;
 	}
-
 
 	unsigned char file[999999];
+	//copy template to output
+	int len;
+	while((len = read(ftemplate,file,999999))>0){
+		write(fd,file,len);
+	}
+
+	//read input and count size
 	int size = 0;
 	int gotten;
 	while( (gotten = read(finput, file+size, 512)) >0 ){
@@ -151,8 +165,9 @@ int main(int argc, char *argv[])
 		goto __func_end;
 	}
 
-	printf("argv[1] size = %d", size);
+	printf("input file size = %d", size);
 
+	//compute FAT
 	unsigned char buf[SECTOR_SIZE];
 	memset(buf, 0x00, SECTOR_SIZE);
 	get_fat(buf, size);
@@ -168,7 +183,7 @@ int main(int argc, char *argv[])
 
 
 	//read root dir
-	ret = read_sector(fd, buf, 7);
+	ret = read_sector(ftemplate, buf, 7);
 	if(ret < 0) goto __func_end;
 
 	buf[60] = size & 0xff;
@@ -188,6 +203,10 @@ int main(int argc, char *argv[])
 
 
 	//close
+	if(close(ftemplate)<0){
+		ret = -1;
+		goto __func_end;
+	}
 	if(close(fd)<0){
 		ret = -1;
 		goto __func_end;
