@@ -159,16 +159,16 @@ int main(int argc, char *argv[])
 	print_sector(buf);
 
 	//write fat 1
-	ret = write_sector(fd, buf, 1);
+	ret = write_sector(fd, buf, 3);
 	if(ret < 0) goto __func_end;
 
 	//write fat 2
-	ret = write_sector(fd, buf, 3);
+	ret = write_sector(fd, buf, 5);
 	if(ret < 0) goto __func_end;
 
 
 	//read root dir
-	ret = read_sector(fd, buf, 5);
+	ret = read_sector(fd, buf, 7);
 	if(ret < 0) goto __func_end;
 
 	buf[60] = size & 0xff;
@@ -179,11 +179,11 @@ int main(int argc, char *argv[])
 	print_sector(buf);
 
 	//write root dir
-	ret = write_sector(fd, buf, 5);
+	ret = write_sector(fd, buf, 7);
 	if(ret < 0) goto __func_end;
 
 	//write file
-	ret = write_len(fd, file, 37*SECTOR_SIZE, size);
+	ret = write_len(fd, file, 39*SECTOR_SIZE, size);
 	if(ret < 0) goto __func_end;
 
 
