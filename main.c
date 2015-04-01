@@ -125,15 +125,22 @@ int main(int argc, char *argv[])
 		printf("Usage: %s <input> <output>\n", argv[0]);
 		return -1;
 	}
-
+#ifdef WINDOWS
+	int finput = open(argv[1], O_RDONLY | O_BINARY);
+#else
 	int finput = open(argv[1], O_RDONLY);
+#endif
 	if(finput < 0){
 		printf("<input> %s not found\n", argv[1]);
 		ret = -1;
 		goto __func_end;
 	}
 
+#ifdef WINDOWS
+	int ftemplate = open("template", O_RDONLY | O_BINARY);
+#else
 	int ftemplate = open("template", O_RDONLY);
+#endif
 	if(ftemplate < 0){
 		printf("template not found\n");
 		ret = -1;
