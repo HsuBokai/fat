@@ -147,7 +147,11 @@ int main(int argc, char *argv[])
 		goto __func_end;
 	}
 
+#ifdef WINDOWS
+	int fd = open(argv[2], O_WRONLY | O_CREAT | O_EXCL | O_BINARY, 0644);
+#else
 	int fd = open(argv[2], O_WRONLY | O_CREAT | O_EXCL, 0644);
+#endif
 	if(fd < 0){
 		printf("create %s error!\n", argv[2]);
 		ret = -1;
